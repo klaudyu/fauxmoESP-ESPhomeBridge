@@ -32,6 +32,8 @@ light:
     id: desk_light
     output: pwm1
     internal: true
+    gamma_correct: 1.0
+    #default_transition_length: 0s
     
 
 output:
@@ -44,6 +46,9 @@ output:
 fauxmo_bridge:
   mdns_name: esp-hue
   tcp_port: 80
+  #outputs:
+  #  - name: Desk
+  #  - output_id: pwm1
   lights:
     - name: Desk
       light_id: desk_light

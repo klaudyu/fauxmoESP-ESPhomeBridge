@@ -27,44 +27,51 @@ void FauxmoBridgeComponent::loop() {
 
 void FauxmoBridgeComponent::start_fauxmo_() {
   ESP_LOGI(TAG, "Starting fauxmo bridge…");
-  fauxmo_.setPort(80);
+
+  const uint16_t port = tcp_port_ ? tcp_port_ : 80;
+  fauxmo_.setPort(port);
   fauxmo_.createServer(true);
-  if (tcp_port_ != 0) fauxmo_.setPort(tcp_port_);
-  if (!mdns_name_.empty()) fauxmo_.enableMDNS(mdns_name_.c_str());
+  
+  if (!mdns_name_.empty()) {
+    fauxmo_.enableMDNS(mdns_name_.c_str());  // once is enough
+  }
 
-	// RE-ENABLE fauxmo's own mDNS
-	if (!mdns_name_.empty()) {
-	  fauxmo_.enableMDNS(mdns_name_.c_str());
-	}
+// (re)attach the onSetState handler
+fauxmo_.onSetState([this](unsigned char idx, const fauxmoesp_device_t *dev) {
+	ESP_LOGI(TAG, "setting device %u to value=%u (bri=%.2f)", idx, (unsigned)dev->value, dev->value / 254.0f);
 
-  // (re)attach the onSetState handler
-  fauxmo_.onSetState([this](unsigned char idx, const fauxmoesp_device_t *dev) {
-    if (idx >= lights_.size()) return;
+    
+	if (idx >= lights_.size()) return;
     auto *ls = lights_[idx].state;
     if (!ls) return;
     auto call = ls->make_call();
     call.set_state(dev->state);
+	//call.set_transition_length(0); 
+	
+	
     call.set_brightness(float(dev->value) / 254.0f);
     if (strncmp(dev->colormode, "hs", 2) == 0) {
       float hue_deg = (float(dev->hue) / 65535.0f) * 360.0f;
       float sat = float(dev->saturation) / 255.0f;
       float r,g,b; hsv_to_rgb(hue_deg, sat, 1.0f, r, g, b);
-      call.set_rgb(r,g,b);
+      //call.set_rgb(r,g,b);
     } else if (strncmp(dev->colormode, "xy", 2) == 0) {
       float r,g,b; xy_to_rgb(dev->x, dev->y, (float)dev->value / 254.0f, r, g, b);
-      call.set_rgb(r,g,b);
+      //call.set_rgb(r,g,b);
     } else if (strncmp(dev->colormode, "ct", 2) == 0 && dev->ct > 0) {
       uint32_t kelvin = (uint32_t)(1000000UL / (uint32_t)dev->ct);
-      call.set_color_temperature(kelvin);
+      //call.set_color_temperature(kelvin);
     }
     call.perform();
+	// keep clients in sync
+  //fauxmo_.setState(idx, dev->state, dev->value);
+  fauxmo_.notifyState(idx);
   });
 
   delay(150);
   fauxmo_.enable(true);
-  ready_ = true;
-  started_ = true;
-  ESP_LOGI(TAG, "fauxmo bridge ready: devices=%u", (unsigned)lights_.size());
+  ready_ = started_ = true;
+  ESP_LOGI(TAG, "fauxmo bridge ready: devices=%u", (unsigned) lights_.size());
 }
 
 void FauxmoBridgeComponent::stop_fauxmo_() {
