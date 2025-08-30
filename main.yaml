@@ -1,10 +1,11 @@
 esphome:
   name: fauxmo-bridge-demo
-  platformio_options:
-    build_flags:
-      -DDEBUG_FAUXMO=Serial
-      -DDEBUG_FAUXMO_VERBOSE_TCP=true
-      -DDEBUG_FAUXMO_VERBOSE_UDP=true
+  # platformio_options:
+  #   build_flags:
+  #     -DDEBUG_FAUXMO=Serial
+  #      -DDEBUG_FAUXMO_VERBOSE_TCP=false
+  #      -DDEBUG_FAUXMO_VERBOSE_UDP=false
+  #      -DDEBUG_FAUXMO_DUMP_JSON=false
 
 esp32:
   board: esp32-c3-devkitm-1
@@ -32,7 +33,7 @@ light:
     id: desk_light
     output: pwm1
     internal: true
-    gamma_correct: 1.0
+    #gamma_correct: 1.0
     #default_transition_length: 0s
     
 

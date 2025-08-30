@@ -46,7 +46,6 @@ fauxmo_.onSetState([this](unsigned char idx, const fauxmoesp_device_t *dev) {
     if (!ls) return;
     auto call = ls->make_call();
     call.set_state(dev->state);
-	//call.set_transition_length(0); 
 	
 	
     call.set_brightness(float(dev->value) / 254.0f);
@@ -64,11 +63,13 @@ fauxmo_.onSetState([this](unsigned char idx, const fauxmoesp_device_t *dev) {
     }
     call.perform();
 	// keep clients in sync
-  //fauxmo_.setState(idx, dev->state, dev->value);
-  fauxmo_.notifyState(idx);
+    fauxmo_.setState(idx, dev->state, dev->value);
+    //fauxmo_.printState(idx);     
+    fauxmo_.notifyState(idx);
+    //fauxmo_.printState(idx);
+
   });
 
-  delay(150);
   fauxmo_.enable(true);
   ready_ = started_ = true;
   ESP_LOGI(TAG, "fauxmo bridge ready: devices=%u", (unsigned) lights_.size());
@@ -95,7 +96,6 @@ void FauxmoBridgeComponent::add_light(const std::string &name, LightState *state
     float b = 0.0f;
     state->current_values_as_brightness(&b);
     const uint8_t bri = static_cast<uint8_t>(std::round(b * 255.0f));
-    this->fauxmo_.setState(faux_id, (bri > 0), bri);
     this->fauxmo_.notifyState(faux_id);
   });
 
