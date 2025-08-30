@@ -1,12 +1,10 @@
 esphome:
   name: fauxmo-bridge-demo
   platformio_options:
-    # Keep only the ESPHome fork of AsyncTCP
-    lib_ignore:
-      - AsyncTCP
-      - esp32async/AsyncTCP
-      - me-no-dev/AsyncTCP
-      - mathieucarbou/AsyncTCP
+    build_flags:
+      -DDEBUG_FAUXMO=Serial
+      -DDEBUG_FAUXMO_VERBOSE_TCP=true
+      -DDEBUG_FAUXMO_VERBOSE_UDP=true
 
 esp32:
   board: esp32-c3-devkitm-1
@@ -33,17 +31,19 @@ light:
     name: Desk Light
     id: desk_light
     output: pwm1
-
+    internal: true
+    
 
 output:
   - platform: ledc
     id: pwm1
+    inverted: true
     pin: 8
 
 # ← NEW: proper external component usage (no custom_component)
 fauxmo_bridge:
   mdns_name: esp-hue
-  tcp_port: 1905
+  tcp_port: 80
   lights:
     - name: Desk
       light_id: desk_light

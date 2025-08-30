@@ -27,9 +27,15 @@ void FauxmoBridgeComponent::loop() {
 
 void FauxmoBridgeComponent::start_fauxmo_() {
   ESP_LOGI(TAG, "Starting fauxmo bridge…");
+  fauxmo_.setPort(80);
   fauxmo_.createServer(true);
   if (tcp_port_ != 0) fauxmo_.setPort(tcp_port_);
   if (!mdns_name_.empty()) fauxmo_.enableMDNS(mdns_name_.c_str());
+
+	// RE-ENABLE fauxmo's own mDNS
+	if (!mdns_name_.empty()) {
+	  fauxmo_.enableMDNS(mdns_name_.c_str());
+	}
 
   // (re)attach the onSetState handler
   fauxmo_.onSetState([this](unsigned char idx, const fauxmoesp_device_t *dev) {
@@ -54,6 +60,7 @@ void FauxmoBridgeComponent::start_fauxmo_() {
     call.perform();
   });
 
+  delay(150);
   fauxmo_.enable(true);
   ready_ = true;
   started_ = true;
